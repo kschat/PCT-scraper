@@ -103,4 +103,27 @@ describe('Course scraper', function() {
 			linkText.should.equal('22', 'actually equals ' + linkText);
 		});
 	});
+
+	describe('Putting times into an array', function() {
+		it('should contain 2 elements', function() {
+			var linkText = $($row).find('td').eq(4).text().trim(),
+				times = linkText.split('-');
+
+			times.should.have.length(2);
+		});
+
+		it('should equal 2:00P.M. in the first element', function() {
+			var linkText = $($row).find('td').eq(4).text().trim(),
+				times = linkText.split(' - ');
+
+			times[0].should.equal('2:00P.M.');
+		});
+
+		it('should equal 3:30P.M. in the second element', function() {
+			var linkText = $($row).find('td').eq(4).text().trim(),
+				times = linkText.split(' - ');
+
+			times[1].should.equal('3:30P.M.');
+		});
+	});
 });

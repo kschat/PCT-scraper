@@ -1,4 +1,4 @@
 test:
-	@/home/kyle/local/bin/mocha
+	@~/local/bin/mocha
 
 .PHONY: test
