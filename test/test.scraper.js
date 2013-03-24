@@ -1,9 +1,11 @@
 var should = require('should'),
 	scraper = require('scraper'),
 	request = require('request'),
-	$ = require('jquery');
+	$ = require('jquery'),
+	Course = require('../models/course');
 
 var $row,
+	course = new Course(),
 	req = {
 	uri: 'http://localhost:3000'
 };
@@ -36,6 +38,7 @@ describe('Course scraper', function() {
 			linkText = linkText.split(' ')[0];
 
 			linkText.should.equal('CIT160', 'actually equals ' + linkText);
+			course.courseNumber = linkText;
 		});
 	});
 
@@ -45,6 +48,7 @@ describe('Course scraper', function() {
 			linkText = linkText.split(' ')[1];
 
 			linkText.should.equal('01', 'actually equals ' + linkText);
+			course.section = linkText;
 		});
 	});
 
@@ -53,6 +57,7 @@ describe('Course scraper', function() {
 			var linkText = $($row).find('td').eq(1).text().trim();
 
 			linkText.should.equal('Introduction to Programming', 'actually equals ' + linkText);
+			course.courseTitle = linkText;
 		});
 	});
 
@@ -61,6 +66,7 @@ describe('Course scraper', function() {
 			var linkText = $($row).find('td').eq(2).text().trim();
 
 			linkText.should.equal('3.00', 'actually equals ' + linkText);
+			course.credits = linkText;
 		});
 	});
 
@@ -69,6 +75,7 @@ describe('Course scraper', function() {
 			var linkText = $($row).find('td').eq(3).text().trim();
 
 			linkText.should.equal('Tue,Thr', 'actually equals ' + linkText);
+			course.days = linkText;
 		});
 	});
 
@@ -77,6 +84,7 @@ describe('Course scraper', function() {
 			var linkText = $($row).find('td').eq(4).text().trim();
 
 			linkText.should.equal('2:00P.M. - 3:30P.M.', 'actually equals ' + linkText);
+			course.times = linkText;
 		});
 	});
 
@@ -85,6 +93,7 @@ describe('Course scraper', function() {
 			var linkText = $($row).find('td').eq(5).text().trim();
 
 			linkText.should.equal('ATHS/E246', 'actually equals ' + linkText);
+			course.location = linkText;
 		});
 	});
 
@@ -93,6 +102,7 @@ describe('Course scraper', function() {
 			var linkText = $($row).find('td').eq(6).text().trim();
 
 			linkText.should.equal('LEETE, D', 'actually equals ' + linkText);
+			course.instructor = linkText;
 		});
 	});
 
@@ -101,6 +111,7 @@ describe('Course scraper', function() {
 			var linkText = $($row).find('td').eq(7).text().trim();
 
 			linkText.should.equal('22', 'actually equals ' + linkText);
+			course.seats = linkText;
 		});
 	});
 
@@ -124,6 +135,7 @@ describe('Course scraper', function() {
 				times = linkText.split(' - ');
 
 			times[1].should.equal('3:30P.M.');
+			console.log(course);
 		});
 	});
 });
