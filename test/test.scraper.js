@@ -82,6 +82,7 @@ describe('Course scraper', function() {
 	describe('Grabing times', function() {
 		it('should equal 2:00P.M. - 3:30P.M.', function() {
 			var linkText = $($row).find('td').eq(4).text().trim();
+			linkText = linkText.replace(/[ \s]+/g, ' ');
 
 			linkText.should.equal('2:00P.M. - 3:30P.M.', 'actually equals ' + linkText);
 			course.times = linkText;
@@ -125,17 +126,16 @@ describe('Course scraper', function() {
 
 		it('should equal 2:00P.M. in the first element', function() {
 			var linkText = $($row).find('td').eq(4).text().trim(),
-				times = linkText.split(' - ');
+				times = linkText.replace(/[ \s]+/g, ' ').split(' - ');
 
 			times[0].should.equal('2:00P.M.');
 		});
 
 		it('should equal 3:30P.M. in the second element', function() {
 			var linkText = $($row).find('td').eq(4).text().trim(),
-				times = linkText.split(' - ');
+				times = linkText.replace(/[ \s]+/g, ' ').split(' - ');
 
 			times[1].should.equal('3:30P.M.');
-			console.log(course);
 		});
 	});
 });

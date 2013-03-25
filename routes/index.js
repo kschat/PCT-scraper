@@ -30,7 +30,7 @@ exports.pullClasses = function(req, response) {
 			semester: 'FALL',
 			oca: 'OPEN',
 			fmsbm: 'Submit',
-			course1: 'MTH',
+			course1: 'CIT',
 		},
 	}, function(err, res, body) {
 		fs.writeFile(__dirname + '/../views/classes.html', body, function(err) {
@@ -81,7 +81,7 @@ exports.pullClasses = function(req, response) {
 							//If the colspan is 4 then the time is for the same day
 							if(td.first().attr('colspan') === '4') {
 								if(times = timeRegex.exec(td.eq(1).text().trim())) {
-									model.times.push(times[0]);
+									model.times.push(times[0].replace(/[ \s]+/g, ' '));
 								}
 							}
 							//If the colspan is 3 then the time is for a different day
@@ -90,7 +90,7 @@ exports.pullClasses = function(req, response) {
 									model.days.push(days[0]);
 								}
 								if(times = timeRegex.exec(td.eq(2).text().trim())) {
-									model.times.push(times[0]);
+									model.times.push(times[0].replace(/[ \s]+/g, ' '));
 								}
 							}
 							//Otherwise we're on the first "row" of the class and can grab the constant data
@@ -100,7 +100,7 @@ exports.pullClasses = function(req, response) {
 								model.courseTitle = td.eq(1).text().trim();
 								model.credits = td.eq(2).text().trim();
 								model.days.push(td.eq(3).text().trim());
-								model.times.push(td.eq(4).text().trim());
+								model.times.push(td.eq(4).text().trim().replace(/[ \s]+/g, ' '));
 								model.location = td.eq(5).text().trim();
 								model.instructor = td.eq(6).text().trim();
 								model.seats = td.eq(7).text().trim();
@@ -111,7 +111,6 @@ exports.pullClasses = function(req, response) {
 							var course = new Course(model);
 							course.save(function(err, c) {
 								if(err) { console.log(err); }
-								console.log(c);
 							});
 
 							model = {
