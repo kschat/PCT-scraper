@@ -21,7 +21,8 @@ exports.index = function(req, res){
 };
 
 exports.pullClasses = function(req, response) {
-	var r = request({
+	var courseSelection = req.query.course ||  '',
+	r = request({
 		uri: 'https://as400sec.pct.edu/MSsearch/ais',
 		method: 'POST',
 		form: {
@@ -30,7 +31,7 @@ exports.pullClasses = function(req, response) {
 			semester: 'FALL',
 			oca: 'OPEN',
 			fmsbm: 'Submit',
-			course1: 'CIT',
+			course1: courseSelection,
 		},
 	}, function(err, res, body) {
 		fs.writeFile(__dirname + '/../views/classes.html', body, function(err) {
