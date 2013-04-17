@@ -16,6 +16,13 @@ db.once('open', function callback () {
  * GET home page.
  */
 
+//Adds a endsWith function to the String prototype if one doesn't already exist.
+if(typeof String.prototype.endsWith !== 'function') {
+	String.prototype.endsWith = function(suffix) {
+		return this.indexOf(suffix, this.length - suffix.length) !== -1;
+	};
+}
+
 exports.index = function(req, res){
 	res.render('classes');
 };
@@ -31,7 +38,7 @@ exports.pullClasses = function(req, response) {
 			semester: 'FALL',
 			oca: 'OPEN',
 			fmsbm: 'Submit',
-			course1: courseSelection,
+			course1: courseSelection
 		},
 	}, function(err, res, body) {
 		fs.writeFile(__dirname + '/../views/classes.html', body, function(err) {
@@ -59,10 +66,8 @@ exports.pullClasses = function(req, response) {
 								courseTitle: '',
 								credits: '',
 								days: [],
-								times: [],
-								location: '',
 								instructor: '',
-								seats: 0,
+								seats: 0
 							};
 
 					$($row).find('tr').each(function(index) {
@@ -70,49 +75,23 @@ exports.pullClasses = function(req, response) {
 						if(index < 2) { return true; }
 						
 						//Cache the array of cells
-						var td = $(this).find('td');
+						var td = $(this).find('td'),
+							timeRegex = /^[0-9]+:[0-5][0-9](?:A.M.|P.M.|Noon)\s*-\s*[0-9]+:[0-5][0-9](?:A.M.|P.M.|Noon)$/,
+							dayRegex = /^(?:[a-zA-Z]{3},?)+$/,
+							colspan = td.first().attr('colspan'),
+							times = [],
+							days = [];
 
-						//If the "altcol" class is the same, we're still scraping the same class from the previous row
-						if(colClass === $(this).attr('class')) {
-							var timeRegex = /^[0-9]+:[0-5][0-9](?:A.M.|P.M.|Noon)\s*-\s*[0-9]+:[0-5][0-9](?:A.M.|P.M.|Noon)$/,
-								dayRegex = /^(?:[a-zA-Z]{3},?)+$/,
-								times = [],
-								days = [];
-
-							//If the colspan is 4 then the time is for the same day
-							if(td.first().attr('colspan') === '4') {
-								if(times = timeRegex.exec(td.eq(1).text().trim())) {
-									model.times.push(times[0].replace(/[ \s]+/g, ' '));
-								}
-							}
-							//If the colspan is 3 then the time is for a different day
-							else if(td.first().attr('colspan') === '3') {
-								if(days = dayRegex.exec(td.eq(1).text().trim())) {
-									model.days.push(days[0]);
-								}
-								if(times = timeRegex.exec(td.eq(2).text().trim())) {
-									model.times.push(times[0].replace(/[ \s]+/g, ' '));
-								}
-							}
-							//Otherwise we're on the first "row" of the class and can grab the constant data
-							else {
-								model.courseNumber = td.first().text().trim().split(' ')[0];
-								model.section = td.first().text().trim().split(' ')[1];
-								model.courseTitle = td.eq(1).text().trim();
-								model.credits = td.eq(2).text().trim();
-								model.days.push(td.eq(3).text().trim());
-								model.times.push(td.eq(4).text().trim().replace(/[ \s]+/g, ' '));
-								model.location = td.eq(5).text().trim();
-								model.instructor = td.eq(6).text().trim();
-								model.seats = td.eq(7).text().trim();
-							}
-						}
-						//Otherwise we have all the information for the current class and can save it.
-						else {
+						//If the "altcol" class isn't the same we're not scraping the same class from the previous row
+						if(colClass !== $(this).attr('class')) {
 							var course = new Course(model);
 							course.save(function(err, c) {
 								if(err) { console.log(err); }
 							});
+
+							colClass = colClass.endsWith('1') 
+								? colClass.substring(0, colClass.length-1) + '2' 
+								: colClass.substring(0, colClass.length-1) + '1';
 
 							model = {
 								courseNumber: '',
@@ -120,16 +99,58 @@ exports.pullClasses = function(req, response) {
 								courseTitle: '',
 								credits: '',
 								days: [],
-								times: [],
-								location: '',
 								instructor: '',
-								seats: 0,
+								seats: 0
 							};
+						}
+
+						//If the colspan is 8 then we're at the footer
+						if(colspan === '8') {
+							//return false;
+						}
+						//If the colspan is 4 then the time is for the same day
+						else if(colspan === '4') {
+							if(times = timeRegex.exec(td.eq(1).text().trim())) {
+								model.days[days.length-1].times.push(times[0].replace(/[ \s]+/g, ' '));
+								model.days[days.length-1].location = td.eq(3).text().trim();
+							}
+						}
+						//If the colspan is 3 then the time is for a different day
+						else if(colspan === '3') {
+							days = dayRegex.exec(td.eq(1).text().trim());
+							times = timeRegex.exec(td.eq(2).text().trim());
+
+							if(days && times) {
+								model.days.push({
+									days: days[0],
+									location: td.eq(3).text().trim(),
+									times: [
+										times[0].replace(/[ \s]+/g, ' ')
+									]
+								});
+							}
+						}
+						//Otherwise we're on the first "row" of the class and can grab the constant data
+						else {
+							model.courseNumber = td.first().text().trim().split(' ')[0];
+							model.section = td.first().text().trim().split(' ')[1];
+							model.courseTitle = td.eq(1).text().trim();
+							model.credits = td.eq(2).text().trim();
+							model.instructor = td.eq(6).text().trim();
+							model.seats = td.eq(7).text().trim();
+
+							model.days.push({
+								days: td.eq(3).text().trim(),
+								location: td.eq(5).text().trim(),
+								times: [
+									td.eq(4).text().trim().replace(/[ \s]+/g, ' ')
+								]
+							});
 						}
 					});
 
 					console.log('saved');
-					response.render('saved', { title: 'Filed saved' });
+					response.render('saved', { title: 'File saved' });
 				});
 			}
 		});
